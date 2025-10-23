@@ -289,7 +289,11 @@
         }
         
         function cartesianProduct(...arrays) {
+            // Compute the Cartesian product of multiple arrays
+            // Example: cartesianProduct(['A','B'], [1,2]) => [['A',1], ['A',2], ['B',1], ['B',2]]
             return arrays.reduce((acc, array) => {
+                // For each element in accumulator and each element in current array,
+                // create a new combination by concatenating them
                 return acc.flatMap(x => array.map(y => [...(Array.isArray(x) ? x : [x]), y]));
             });
         }

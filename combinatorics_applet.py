@@ -11,7 +11,18 @@ from itertools import permutations, combinations, product
 
 
 def factorial(n):
-    """Calculate factorial of n."""
+    """
+    Calculate factorial of n.
+    
+    Args:
+        n: Non-negative integer
+        
+    Returns:
+        Factorial of n, or None if n is negative
+        
+    Note: This wrapper provides consistent error handling for negative inputs
+    across the module, returning None instead of raising an exception.
+    """
     if n < 0:
         return None
     return math.factorial(n)
@@ -216,8 +227,14 @@ class CombinatoricsApplet:
             print(f"  ... and {len(prod) - self.max_display.value} more")
     
     def calculate_custom(self):
-        """Calculate with custom lists."""
-        self.calculate_product()  # Same as product for now
+        """
+        Calculate with custom lists.
+        
+        This mode is functionally identical to the Product mode but provides
+        a clearer label for users who want to work with their own items
+        rather than abstract mathematical concepts.
+        """
+        self.calculate_product()
     
     def display_help(self):
         """Display help text based on current mode."""
