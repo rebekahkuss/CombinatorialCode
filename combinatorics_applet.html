@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Combinatorics Applet</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .mode-selector {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .input-group.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            display: none;
+        }
+        
+        .results.active {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .formula {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 15px 0;
+        }
+        
+        .result-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .result-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .help-text {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #c62828;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Interactive Combinatorics Applet</h1>
+        <p class="subtitle">Explore permutations, combinations, and the counting principle!</p>
+        
+        <div class="help-text" id="helpText">
+            Select a mode below to get started.
+        </div>
+        
+        <div class="mode-selector">
+            <label for="mode">Select Mode:</label>
+            <select id="mode" onchange="updateMode()">
+                <option value="permutations">Permutations (Order Matters)</option>
+                <option value="combinations">Combinations (Order Doesn't Matter)</option>
+                <option value="product">Product (Counting Principle)</option>
+                <option value="custom">Custom Lists</option>
+            </select>
+        </div>
+        
+        <div id="basicInputs" class="input-group active">
+            <label for="n">n (Total items):</label>
+            <input type="number" id="n" value="5" min="0">
+            
+            <label for="r">r (Items to select):</label>
+            <input type="number" id="r" value="3" min="0">
+        </div>
+        
+        <div id="customInputs" class="input-group">
+            <label for="list1">List 1 (comma-separated):</label>
+            <input type="text" id="list1" value="A,B,C" placeholder="e.g., red,blue,green">
+            
+            <label for="list2">List 2 (comma-separated):</label>
+            <input type="text" id="list2" value="1,2,3" placeholder="e.g., small,medium,large">
+            
+            <label for="list3">List 3 (optional):</label>
+            <input type="text" id="list3" value="" placeholder="e.g., cotton,polyester">
+        </div>
+        
+        <label>
+            <input type="checkbox" id="showAll"> Show detailed results
+        </label>
+        
+        <button onclick="calculate()">Calculate</button>
+        
+        <div id="results" class="results"></div>
+    </div>
+    
+    <script>
+        function factorial(n) {
+            if (n < 0) return null;
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+        
+        function nPr(n, r) {
+            if (n < 0 || r < 0 || r > n) return null;
+            return factorial(n) / factorial(n - r);
+        }
+        
+        function nCr(n, r) {
+            if (n < 0 || r < 0 || r > n) return null;
+            return factorial(n) / (factorial(r) * factorial(n - r));
+        }
+        
+        function generatePermutations(arr, r) {
+            const result = [];
+            
+            function permute(prefix, remaining, count) {
+                if (count === 0) {
+                    result.push([...prefix]);
+                    return;
+                }
+                for (let i = 0; i < remaining.length; i++) {
+                    permute(
+                        [...prefix, remaining[i]], 
+                        [...remaining.slice(0, i), ...remaining.slice(i + 1)],
+                        count - 1
+                    );
+                }
+            }
+            
+            permute([], arr, r);
+            return result;
+        }
+        
+        function generateCombinations(arr, r) {
+            const result = [];
+            
+            function combine(start, prefix, count) {
+                if (count === 0) {
+                    result.push([...prefix]);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combine(i + 1, [...prefix, arr[i]], count - 1);
+                }
+            }
+            
+            combine(0, [], r);
+            return result;
+        }
+        
+        function cartesianProduct(...arrays) {
+            // Compute the Cartesian product of multiple arrays
+            // Example: cartesianProduct(['A','B'], [1,2]) => [['A',1], ['A',2], ['B',1], ['B',2]]
+            return arrays.reduce((acc, array) => {
+                // For each element in accumulator and each element in current array,
+                // create a new combination by concatenating them
+                return acc.flatMap(x => array.map(y => [...(Array.isArray(x) ? x : [x]), y]));
+            });
+        }
+        
+        function updateMode() {
+            const mode = document.getElementById('mode').value;
+            const basicInputs = document.getElementById('basicInputs');
+            const customInputs = document.getElementById('customInputs');
+            const helpText = document.getElementById('helpText');
+            
+            const helpTexts = {
+                permutations: '📚 <strong>Permutations</strong>: Order matters! Calculates P(n,r) = n!/(n-r)!<br>Example: Arranging 3 books from 5 books on a shelf.',
+                combinations: '📚 <strong>Combinations</strong>: Order doesn\'t matter! Calculates C(n,r) = n!/(r!(n-r)!)<br>Example: Choosing 3 toppings from 5 available toppings.',
+                product: '📚 <strong>Counting Principle</strong>: Multiply choices! If you have m ways to do one thing and n ways to do another, there are m × n ways to do both.<br>Example: 3 shirts × 2 pants = 6 outfits.',
+                custom: '📚 <strong>Custom Lists</strong>: Use your own items! Enter items separated by commas.<br>Example: Colors, Sizes, Styles'
+            };
+            
+            helpText.innerHTML = helpTexts[mode];
+            
+            if (mode === 'product' || mode === 'custom') {
+                basicInputs.classList.remove('active');
+                customInputs.classList.add('active');
+            } else {
+                basicInputs.classList.add('active');
+                customInputs.classList.remove('active');
+            }
+        }
+        
+        function calculate() {
+            const mode = document.getElementById('mode').value;
+            const resultsDiv = document.getElementById('results');
+            const showAll = document.getElementById('showAll').checked;
+            
+            try {
+                let html = '';
+                
+                if (mode === 'permutations' || mode === 'combinations') {
+                    const n = parseInt(document.getElementById('n').value);
+                    const r = parseInt(document.getElementById('r').value);
+                    
+                    if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
+                        throw new Error('Please enter valid non-negative numbers for n and r');
+                    }
+                    if (r > n) {
+                        throw new Error('r cannot be greater than n');
+                    }
+                    
+                    if (mode === 'permutations') {
+                        const result = nPr(n, r);
+                        html += `<div class="result-title">🔢 Permutations of ${r} items from ${n} items</div>`;
+                        html += `<div class="formula">Formula: P(${n},${r}) = ${n}!/(${n}-${r})!</div>`;
+                        html += `<div class="result-value">Result: ${result.toLocaleString()} permutations</div>`;
+                        
+                        if (showAll && result <= 100) {
+                            const items = Array.from({length: n}, (_, i) => i + 1);
+                            const perms = generatePermutations(items, r);
+                            html += `<div class="result-list">`;
+                            perms.forEach((perm, i) => {
+                                html += `<div class="result-item">${i + 1}. [${perm.join(', ')}]</div>`;
+                            });
+                            html += `</div>`;
+                        } else if (showAll) {
+                            html += `<p>Too many results to display (${result.toLocaleString()} total)</p>`;
+                        }
+                    } else {
+                        const result = nCr(n, r);
+                        html += `<div class="result-title">🔢 Combinations of ${r} items from ${n} items</div>`;
+                        html += `<div class="formula">Formula: C(${n},${r}) = ${n}!/(${r}!×(${n}-${r})!)</div>`;
+                        html += `<div class="result-value">Result: ${result.toLocaleString()} combinations</div>`;
+                        
+                        if (showAll && result <= 100) {
+                            const items = Array.from({length: n}, (_, i) => i + 1);
+                            const combs = generateCombinations(items, r);
+                            html += `<div class="result-list">`;
+                            combs.forEach((comb, i) => {
+                                html += `<div class="result-item">${i + 1}. [${comb.join(', ')}]</div>`;
+                            });
+                            html += `</div>`;
+                        } else if (showAll) {
+                            html += `<p>Too many results to display (${result.toLocaleString()} total)</p>`;
+                        }
+                    }
+                } else {
+                    const list1 = document.getElementById('list1').value.split(',').map(s => s.trim()).filter(s => s);
+                    const list2 = document.getElementById('list2').value.split(',').map(s => s.trim()).filter(s => s);
+                    const list3 = document.getElementById('list3').value.split(',').map(s => s.trim()).filter(s => s);
+                    
+                    if (list1.length === 0 || list2.length === 0) {
+                        throw new Error('Please provide at least two non-empty lists');
+                    }
+                    
+                    const lists = list3.length > 0 ? [list1, list2, list3] : [list1, list2];
+                    const total = lists.reduce((acc, list) => acc * list.length, 1);
+                    
+                    html += `<div class="result-title">🔢 Cartesian Product (Counting Principle)</div>`;
+                    lists.forEach((list, i) => {
+                        html += `<div class="formula">List ${i + 1}: [${list.join(', ')}] (size: ${list.length})</div>`;
+                    });
+                    html += `<div class="formula">Total: ${lists.map(l => l.length).join(' × ')} = ${total}</div>`;
+                    html += `<div class="result-value">Result: ${total.toLocaleString()} combinations</div>`;
+                    
+                    if (showAll && total <= 100) {
+                        const products = cartesianProduct(...lists);
+                        html += `<div class="result-list">`;
+                        products.forEach((prod, i) => {
+                            html += `<div class="result-item">${i + 1}. (${prod.join(', ')})</div>`;
+                        });
+                        html += `</div>`;
+                    } else if (showAll) {
+                        html += `<p>Too many results to display (${total.toLocaleString()} total)</p>`;
+                    }
+                }
+                
+                resultsDiv.innerHTML = html;
+                resultsDiv.classList.add('active');
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                resultsDiv.classList.add('active');
+            }
+        }
+        
+        // Initialize
+        updateMode();
+    </script>
+</body>
+</html>
